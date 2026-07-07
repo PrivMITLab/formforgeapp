@@ -1,0 +1,34 @@
+# Next.js build outputs
+.next/
+out/
+build/
+
+# OpenNext output
+.open-next/
+
+# Node modules dependencies
+node_modules/
+
+# Local secrets & variables
+.env*.local
+.env
+.dev.vars
+
+# Local wrangler development files
+.wrangler/
+wrangler.d.ts
+
+# Lockfile conflict bypass
+package-lock.json
+
+# System & OS logs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+drizzle/
+formzero_source/

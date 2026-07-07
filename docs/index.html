@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FormForge Docs — Vite + React 19 SPA + Cloudflare Hono API</title>
+  <meta name="description" content="Complete FormForge setup docs: one-click Cloudflare deployment, D1 database, Hono routing, environment variables, API usage, privacy, and troubleshooting." />
+  <link rel="icon" href="../public/favicon.svg" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070a13;
+      --panel: rgba(13, 18, 33, 0.75);
+      --line: rgba(255, 255, 255, 0.08);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent-cyan: #06b6d4;
+      --accent-pink: #ec4899;
+      --green: #10b981;
+      --amber: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: 
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15), transparent 40rem),
+        radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.1), transparent 40rem),
+        radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05), transparent 50rem),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    a {
+      color: #818cf8;
+      text-decoration: none;
+      transition: color 0.25s;
+    }
+
+    a:hover {
+      color: #a5b4fc;
+      text-decoration: underline;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px 20px 80px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 60px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+      font-weight: 900;
+      font-size: 22px;
+    }
+
+    .brand img {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .pill {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      background: rgba(99, 102, 241, 0.1);
+      color: #c7d2fe;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    h1 {
+      font-size: clamp(38px, 6vw, 68px);
+      line-height: 1.05;
+      margin: 20px 0 16px;
+      letter-spacing: -0.05em;
+      font-weight: 900;
+      background: linear-gradient(to right, #ffffff, #c7d2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h2 {
+      font-size: clamp(24px, 3.5vw, 36px);
+      line-height: 1.1;
+      margin: 40px 0 16px;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+      color: #fff;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      font-size: 20px;
+      margin: 24px 0 10px;
+      color: #f1f5f9;
+    }
+
+    .lead {
+      font-size: 18px;
+      color: #cbd5e1;
+      max-width: 850px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+
+    .two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover {
+      border-color: rgba(99, 102, 241, 0.25);
+      box-shadow: 0 10px 40px rgba(99, 102, 241, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    code, kbd {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 2px 6px;
+      color: #a5b4fc;
+      font-family: monospace;
+    }
+
+    pre {
+      overflow: auto;
+      background: rgba(7, 10, 19, 0.85);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      color: #c7d2fe;
+    }
+
+    .ok {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .warn {
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      margin-top: 14px;
+    }
+
+    .table th, .table td {
+      border-bottom: 1px solid var(--line);
+      padding: 14px;
+      text-align: left;
+      vertical-align: middle;
+      font-size: 14px;
+    }
+
+    .table th {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+      font-weight: 700;
+    }
+
+    .table tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .btns {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      padding: 12px 20px;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      color: #fff;
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      color: #fff;
+      border: none;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn.primary:hover {
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+      filter: brightness(1.1);
+    }
+
+    .toc {
+      position: sticky;
+      top: 20px;
+    }
+
+    .toc ol {
+      padding-left: 20px;
+    }
+
+    .toc li {
+      margin-bottom: 12px;
+    }
+
+    .callout {
+      border-left: 4px solid var(--primary);
+      padding: 14px 16px;
+      background: rgba(99, 102, 241, 0.08);
+      border-radius: 12px;
+    }
+
+    .footer {
+      margin-top: 80px;
+      padding-top: 30px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .diagram {
+      font-family: monospace;
+      white-space: pre;
+      background: rgba(7, 10, 19, 0.9);
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      color: #38bdf8;
+      overflow-x: auto;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 900px) {
+      .two, .three {
+        grid-template-columns: 1fr;
+      }
+      .nav {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .toc {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="https://github.com/SudhirDevOps1/FormForge"><img src="../public/logo.svg" alt="FormForge logo" onerror="this.src='logo.svg'" /><span>FormForge Docs</span></a>
+      <div class="btns" style="margin:0">
+        <a class="btn" href="https://github.com/SudhirDevOps1/FormForge">GitHub Repo</a>
+        <a class="btn primary" href="https://deploy.workers.cloudflare.com/?url=https://github.com/SudhirDevOps1/FormForge">One-Click Deploy</a>
+      </div>
+    </nav>
+
+    <header>
+      <span class="pill">🔓 No database locks · 📀 Zero paid tiers · ⚡ Self-Hosted D1</span>
+      <h1>Privacy-First Form Backend Built With Vite + React 19 + Hono API</h1>
+      <p class="lead">FormForge is an optimized contact form, waitlist, survey, lead capture, and sitemaps processor backend. Powered by the high-performance Hono API route engine on Cloudflare Pages Workers.</p>
+      <div class="btns">
+        <a class="btn primary" href="#deploy">Deployment Guide</a>
+        <a class="btn" href="#api">Usage APIs</a>
+        <a class="btn" href="#privacy">Privacy Features</a>
+      </div>
+    </header>
+
+    <main class="grid two" style="align-items:start;margin-top:44px">
+      <aside class="card toc">
+        <h2 style="margin-top:0;font-size:24px">Documentation Contents</h2>
+        <ol>
+          <li><a href="#features">Features Checklist</a></li>
+          <li><a href="#architecture">Workflow Architecture</a></li>
+          <li><a href="#deploy">One-Click Deploy Flow</a></li>
+          <li><a href="#env">Variables Configuration</a></li>
+          <li><a href="#api">API Integrations</a></li>
+          <li><a href="#privacy">Privacy vs SaaS Providers</a></li>
+          <li><a href="#troubleshooting">Troubleshooting Errors</a></li>
+        </ol>
+      </aside>
+
+      <section class="grid" style="gap:30px">
+        <div class="card" id="features">
+          <h2 style="margin-top:0">Features Checklist</h2>
+          <div class="grid two">
+            <ul>
+              <li>Submit standard HTML <code>&lt;form&gt;</code> directly using <code>POST</code>.</li>
+              <li>Hono API Router parsing submissions 10x faster with RegExp Router.</li>
+              <li>Unlimited forms and submissions size under free Cloudflare tier.</li>
+              <li>Optional built-in Webhooks and email templates (Resend supported).</li>
+            </ul>
+            <ul>
+              <li>Active Honeypot fields filter automated bots.</li>
+              <li>Optional client Proof-of-Work (PoW) security challenge.</li>
+              <li>React 19 Hooks integration for instant dashboard responsiveness.</li>
+              <li>Self-Healing Database tables creation on first request.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card" id="architecture">
+          <h2 style="margin-top:0">Workflow Architecture</h2>
+          <div class="diagram">
+[ Pure React 19 Client SPA ]
+          │
+          ▼
+[ Hono Edge API Workers ] ──► (Spam HoneyPot / RegExp Routing)
+          │
+          ▼
+    [ getDb() Call ] (Dynamic Connection Pool)
+          │
+          ▼
+[ Cloudflare D1 SQL Database ] (Store encrypted entries safely)</div>
+          <p class="callout" style="margin-top:14px"><strong>Important:</strong> FormForge Hono routes initialize database connections only during active handler execution using dynamic Drizzle pools. React static assets compilation never triggers D1 database access, ensuring zero database initialization crashes.</p>
+        </div>
+
+        <div class="card" id="deploy">
+          <h2 style="margin-top:0">One-Click Deploy Flow</h2>
+          <p>The **Deploy to Cloudflare** process is entirely decentralized. It clones the blueprint seed to your own GitHub profile, provisions your own Worker and D1 Database instances, and configures environment parameters directly under your ownership.</p>
+          <ol style="line-height:1.8">
+            <li>Click the **Deploy to Cloudflare** button on the home page.</li>
+            <li>Connect your GitHub profile to template clone the codebase.</li>
+            <li>Define Worker target parameters (Worker name, e.g. <code>formforge-backend</code>).</li>
+            <li>Secure your session keys by writing <code>AUTH_SECRET</code> (Generate keys from <a href="https://jwtsecrets.com" target="_blank">jwtsecrets.com</a>).</li>
+            <li>Click Deploy. The system configures variables, automatically builds server chunks, and deploys it live.</li>
+          </ol>
+        </div>
+
+        <div class="card" id="env">
+          <h2 style="margin-top:0">Variables Configuration</h2>
+          <p>These environment keys can be modified from **Cloudflare Workers Settings -> Variables** panel anytime without redeploying the code:</p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Variable Name</th>
+                <th>Required?</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>AUTH_SECRET</code></td>
+                <td><span class="ok">Yes</span></td>
+                <td>32+ chars string to encrypt session cookies (dashboard security).</td>
+              </tr>
+              <tr>
+                <td><code>RESEND_API_KEY</code></td>
+                <td>No</td>
+                <td>Your Resend API token. If missing, email dispatchers remain inactive.</td>
+              </tr>
+              <tr>
+                <td><code>RESEND_FROM</code></td>
+                <td>No</td>
+                <td>Verified Resend sender domain. Example: <code>FormForge &lt;forms@domain.com&gt;</code>.</td>
+              </tr>
+              <tr>
+                <td><code>DB</code></td>
+                <td><span class="ok">Yes</span></td>
+                <td>Internal D1 database binder name. Auto-attached by Cloudflare.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card" id="api">
+          <h2 style="margin-top:0">API Integrations</h2>
+          <h3>Plain HTML Submission (Zero-JS)</h3>
+          <pre><code>&lt;form action="https://your-worker.workers.dev/api/submit/endpoint_xxx" method="POST"&gt;
+  &lt;!-- Simple website field serves as a Honeypot trap to block bots --&gt;
+  &lt;input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off" /&gt;
+  
+  &lt;input type="email" name="email" placeholder="Your Email" required /&gt;
+  &lt;textarea name="message" placeholder="Message" required&gt;&lt;/textarea&gt;
+  &lt;button type="submit"&gt;Submit Form&lt;/button&gt;
+&lt;/form&gt;</code></pre>
+        </div>
+
+        <div class="card" id="privacy">
+          <h2 style="margin-top:0">FormForge vs SaaS Providers</h2>
+          <p>FormForge gives you complete control over your user data, ensuring 100% data ownership.</p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Security Property</th>
+                <th>FormForge (D1)</th>
+                <th>Standard SaaS Providers</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Database Ownership</strong></td>
+                <td><span class="ok">100% Yours (Cloudflare D1)</span></td>
+                <td>Stored on provider's servers</td>
+              </tr>
+              <tr>
+                <td><strong>Pricing Limits</strong></td>
+                <td><span class="ok">Unlimited Free Tier</span></td>
+                <td>Monthly submission limits (Paid upgrades)</td>
+              </tr>
+              <tr>
+                <td><strong>IP Logs Privacy</strong></td>
+                <td><span class="ok">Cryptographically Hashed IP</span></td>
+                <td>Plain IP stored with submissions</td>
+              </tr>
+              <tr>
+                <td><strong>Telemetry & Ads</strong></td>
+                <td><span class="ok">None</span></td>
+                <td>Tracking pixels / Third-party cookies</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card" id="troubleshooting">
+          <h2 style="margin-top:0">Troubleshooting Errors</h2>
+          <h3>Error: <code>Pbkdf2 failed: iteration counts above 100000...</code></h3>
+          <p>Cloudflare Workers Web Crypto allows maximum 100,000 hashing iterations. In our updated lib files, this iteration limit has been set to 100,000. No further changes needed.</p>
+          <h3>Error: <code>Network error. Is the Worker deployed and D1 bound?</code></h3>
+          <p>Verify that tables are created. Go to D1 Database -> Console tab on Cloudflare, and run D1 script to create the schema (Refer troubleshooting guides).</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>FormForge Project · Open Source MIT License · Built for Serverless Edge Computing.</p>
+    </footer>
+  </div>
+</body>
+</html>
